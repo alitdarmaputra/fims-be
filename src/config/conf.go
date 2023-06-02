@@ -15,6 +15,7 @@ type Api struct {
 	JWTExpiredTime        int      `json:"jwt_expired_time"             mapstructure:"JWT_EXPIRED"`
 	ResetTokenExpiredTime int      `json:"reset_token_expiredbali_time" mapstructure:"RESET_TOKEN_EXPIRED"`
 	Database              Database `json:"database"`
+	SMTP                  SMTP     `json:"smtp"`
 }
 
 type Database struct {
@@ -24,6 +25,15 @@ type Database struct {
 	Password string `json:"password" mapstructure:"DATABASE_PASSWORD"`
 	Schema   string `json:"schema"   mapstructure:"DATABASE_SCHEMA"`
 	Loc      string `json:"loc"      mapstructure:"DATABASE_LOC"`
+}
+
+type SMTP struct {
+	ClientOrigin string `json:"client_origin" mapstructure:"CLIENT_ORIGIN"`
+	EmailFrom    string `json:"from"          mapstructure:"EMAIL_FROM"`
+	Host         string `json:"smtp_host"     mapstructure:"SMTP_HOST"`
+	Port         int    `json:"smtp_port"     mapstructure:"SMTP_PORT"`
+	Username     string `json:"smtp_username" mapstructure:"SMTP_USERNAME"`
+	Password     string `json:"smtp_password" mapstructure:"SMTP_PASSWORD"`
 }
 
 func LoadConfigAPI(path string) *Api {
@@ -48,6 +58,7 @@ func LoadConfigAPI(path string) *Api {
 
 	viper.Unmarshal(api)
 	viper.Unmarshal(&api.Database)
+	viper.Unmarshal(&api.SMTP)
 
 	return api
 }

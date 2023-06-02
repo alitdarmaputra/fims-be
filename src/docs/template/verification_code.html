@@ -1,0 +1,86 @@
+{{define "verification_code"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    {{template "styles" .}}
+    <title>{{ .Subject}}</title>
+  </head>
+  <body>
+    <table
+      role="presentation"
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      class="body"
+    >
+      <tr>
+        <td>&nbsp;</td>
+        <td class="container">
+          <div class="content">
+            <table role="presentation" class="main">
+              <!-- START MAIN CONTENT AREA -->
+
+                <table role="presentation" class="main">
+                  <!-- START MAIN CONTENT AREA -->
+                  <tr>
+                    <td class="wrapper">
+                      <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td>
+                            <img src="https://iili.io/HX10rdB.png" alt="abiwara-logo"></img>
+                            <br>
+                            <p>Halo <b>{{ .Name }},</b></p>
+                            <p>Mohon verifikasi akun kamu dengan mengklik link dibawah</p>
+                            <table
+                              role="presentation"
+                              border="0"
+                              cellpadding="0"
+                              cellspacing="0"
+                              class="btn btn-primary"
+                            >
+                              <tbody>
+                                <tr>
+                                  <td align="left">
+                                    <table
+                                      role="presentation"
+                                      border="0"
+                                      cellpadding="0"
+                                      cellspacing="0"
+                                    >
+                                      <tbody>
+                                        <tr>
+                                          <td>
+                                            <a href="{{ .URL }}" target="_blank">Verifikasi Akun</a>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <br>
+                            <p style="color: #808080;">Jika kamu mengalami kesulitan kamu juga dapat menyalin dan menempel tautan berikut di browser:</p>
+                            <p style="color: #808080;">{{ .URL }}</p>
+                            <p>Salam hormat, tim Fims.</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <!-- END MAIN CONTENT AREA -->
+                </table>
+              <!-- END MAIN CONTENT AREA -->
+            </table>
+          </div>
+        </td>
+        <td>&nbsp;</td>
+      </tr>
+    </table>
+  </body>
+</html>
+{{end}}
+

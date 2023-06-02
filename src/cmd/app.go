@@ -1,10 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/alitdarmaputra/fims-be/src/business/domain"
+	"github.com/alitdarmaputra/fims-be/src/business/usecase"
 	"github.com/alitdarmaputra/fims-be/src/common"
 	"github.com/alitdarmaputra/fims-be/src/config"
 	"github.com/alitdarmaputra/fims-be/src/handler/rest"
@@ -17,23 +19,20 @@ const (
 
 func InitializeServer() *http.Server {
 	cfg := config.LoadConfigAPI(".")
-
 	if cfg.Env == production {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	_, err := common.NewMySQL(&cfg.Database)
+	db, err := common.NewMySQL(&cfg.Database)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	handler := rest.Init(cfg)
+	dom := domain.Init()
+	uc := usecase.Init(dom, db, cfg)
 
-	server := http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Port),
-		Handler: handler,
-	}
-	log.Println("server is listening on port :", cfg.Port)
+	uc.User.SetJWTConfig(cfg.JWTSecretKey, time.Duration(cfg.JWTExpiredTime)*time.Minute)
 
-	return &server
+	rest := rest.Init(cfg, uc)
+	return rest.Serve()
 }
