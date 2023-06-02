@@ -125,6 +125,10 @@ func (usecase *UserUsecaseImpl) Login(
 	defer utils.CommitOrRollBack(tx)
 
 	user, err := usecase.UserDom.FindOne(ctx, tx, request.Email)
+	if !user.VerifiedAt.Valid {
+		panic(entity.NewUnauthorizedError("Incorrect email and password entered"))
+	}
+
 	if err != nil {
 		panic(entity.NewUnauthorizedError("Incorrect email and password entered"))
 	}

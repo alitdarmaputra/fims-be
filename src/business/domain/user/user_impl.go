@@ -80,7 +80,7 @@ func (domain *UserDomImpl) FindUnverifiedById(
 	userId uint,
 ) (model.User, error) {
 	var user model.User
-	if err := tx.Where("verified_at IS NOT NULL").First(&user).Error; err != nil {
+	if err := tx.Where("verified_at IS NULL").First(&user).Error; err != nil {
 		return user, err
 	}
 	return user, nil

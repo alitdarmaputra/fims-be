@@ -31,7 +31,9 @@ func InitializeServer() *http.Server {
 	dom := domain.Init()
 	uc := usecase.Init(dom, db, cfg)
 
-	uc.User.SetJWTConfig(cfg.JWTSecretKey, time.Duration(cfg.JWTExpiredTime)*time.Minute)
+	if cfg.JWTSecretKey != "" && cfg.JWTExpiredTime == 0 {
+		uc.User.SetJWTConfig(cfg.JWTSecretKey, time.Duration(cfg.JWTExpiredTime)*time.Minute)
+	}
 
 	rest := rest.Init(cfg, uc)
 	return rest.Serve()
