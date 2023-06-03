@@ -63,7 +63,7 @@ func (domain *UserDomImpl) FindById(
 }
 
 func (domain *UserDomImpl) Update(
-	ctx context.Context,
+	c context.Context,
 	tx *gorm.DB,
 	user model.User,
 ) (model.User, error) {
@@ -75,7 +75,7 @@ func (domain *UserDomImpl) Update(
 }
 
 func (domain *UserDomImpl) FindUnverifiedById(
-	ctx context.Context,
+	c context.Context,
 	tx *gorm.DB,
 	userId uint,
 ) (model.User, error) {
@@ -84,4 +84,23 @@ func (domain *UserDomImpl) FindUnverifiedById(
 		return user, err
 	}
 	return user, nil
+}
+func (domain *UserDomImpl) FindAll(
+	c context.Context,
+	tx *gorm.DB,
+	offset, limit int,
+	search string,
+) ([]model.User, int) {
+	var users []model.User = []model.User{}
+	result := tx.Find(&users)
+
+	if search != "" {
+		search = "%" + search + "%"
+		result = tx.Limit(limit).
+			Offset(offset).
+			Where("name LIKE ? AND role_id = ?", search, 2).
+			Find(&users)
+	}
+
+	return users, int(result.RowsAffected)
 }

@@ -5,16 +5,18 @@ import (
 	"time"
 
 	"github.com/alitdarmaputra/fims-be/src/business/model"
+	"gorm.io/gorm"
 )
 
 type HTTPUserDetailResponse struct {
-	ID         uint         `json:"id"`
-	Email      string       `json:"email"`
-	Name       string       `json:"name"`
-	ProfileImg string       `json:"profile_img"`
-	CreatedAt  time.Time    `json:"created_at"`
-	UpdatedAt  time.Time    `json:"updated_at"`
-	DeletedAt  sql.NullTime `json:"deleted_at"`
+	ID         uint           `json:"id"`
+	Email      string         `json:"email"`
+	Name       string         `json:"name"`
+	ProfileImg string         `json:"profile_img"`
+	VerifiedAt sql.NullTime   `json:"verified_at"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  gorm.DeletedAt `json:"deleted_at"`
 }
 
 func ToUserResponse(user model.User) HTTPUserDetailResponse {
@@ -22,6 +24,11 @@ func ToUserResponse(user model.User) HTTPUserDetailResponse {
 		ID:         user.ID,
 		Name:       user.Name,
 		ProfileImg: user.ProfileImg,
+		Email:      user.Email,
+		VerifiedAt: user.VerifiedAt,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+		DeletedAt:  user.DeletedAt,
 	}
 }
 

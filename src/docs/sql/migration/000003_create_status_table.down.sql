@@ -1,0 +1,1 @@
+DROP TABLE status IF EXISTS;

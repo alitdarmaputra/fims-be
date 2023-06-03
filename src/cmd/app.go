@@ -10,6 +10,7 @@ import (
 	"github.com/alitdarmaputra/fims-be/src/common"
 	"github.com/alitdarmaputra/fims-be/src/config"
 	"github.com/alitdarmaputra/fims-be/src/handler/rest"
+	"github.com/alitdarmaputra/fims-be/src/handler/rest/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,10 +32,11 @@ func InitializeServer() *http.Server {
 	dom := domain.Init()
 	uc := usecase.Init(dom, db, cfg)
 
-	if cfg.JWTSecretKey != "" && cfg.JWTExpiredTime == 0 {
+	if cfg.JWTSecretKey != "" && cfg.JWTExpiredTime != 0 {
 		uc.User.SetJWTConfig(cfg.JWTSecretKey, time.Duration(cfg.JWTExpiredTime)*time.Minute)
 	}
 
-	rest := rest.Init(cfg, uc)
+	auth := middleware.NewAuthentication(cfg.JWTSecretKey)
+	rest := rest.Init(cfg, uc, auth)
 	return rest.Serve()
 }

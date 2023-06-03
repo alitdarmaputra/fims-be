@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/alitdarmaputra/fims-be/src/common"
 	"github.com/alitdarmaputra/fims-be/src/handler/rest/request"
@@ -10,68 +11,95 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (e *rest) Register(ctx *gin.Context) {
+func (e *rest) Register(c *gin.Context) {
 	userCreateRequest := request.HTTPUserCreateRequest{}
-	err := ctx.ShouldBindJSON(&userCreateRequest)
+	err := c.ShouldBindJSON(&userCreateRequest)
 	utils.PanicIfError(err)
 
-	e.uc.User.Create(ctx, userCreateRequest)
-	common.JsonBasicResponse(ctx, http.StatusCreated, "Created")
+	e.uc.User.Create(c, userCreateRequest)
+	common.JsonBasicResponse(c, http.StatusCreated, "Created")
 }
 
-func (e *rest) GetProfile(ctx *gin.Context) {
-	claims, err := e.middleware.ExtractJWTUser(ctx)
+func (e *rest) GetProfile(c *gin.Context) {
+	claims, err := e.auth.ExtractJWTUser(c)
 	utils.PanicIfError(err)
 
-	userResponse := e.uc.User.FindById(ctx, claims.Id)
+	userResponse := e.uc.User.FindById(c, claims.Id)
 
-	common.JsonBasicData(ctx, http.StatusOK, "OK", userResponse)
+	common.JsonBasicData(c, http.StatusOK, "OK", userResponse)
 }
 
-func (e *rest) VerifyEmail(ctx *gin.Context) {
+func (e *rest) VerifyEmail(c *gin.Context) {
 	param := request.VerificationParam{}
-	err := ctx.ShouldBindUri(&param)
+	err := c.ShouldBindUri(&param)
 	utils.PanicIfError(err)
 
-	e.uc.User.VerifyEmail(ctx, param.VerificationCode)
-	common.JsonBasicResponse(ctx, http.StatusOK, "OK")
+	e.uc.User.VerifyEmail(c, param.VerificationCode)
+	common.JsonBasicResponse(c, http.StatusOK, "OK")
 }
 
-func (e *rest) Login(ctx *gin.Context) {
+func (e *rest) Login(c *gin.Context) {
 	userLoginRequest := request.HTTPUserLoginRequest{}
-	err := ctx.ShouldBindJSON(&userLoginRequest)
+	err := c.ShouldBindJSON(&userLoginRequest)
 	utils.PanicIfError(err)
 
-	token := e.uc.User.Login(ctx, userLoginRequest)
-	common.JsonBasicData(ctx, http.StatusOK, "OK", token.Token)
+	token := e.uc.User.Login(c, userLoginRequest)
+	common.JsonBasicData(c, http.StatusOK, "OK", token.Token)
 }
 
-func (e *rest) ChangePassword(ctx *gin.Context) {
-	claims, err := e.middleware.ExtractJWTUser(ctx)
+func (e *rest) ChangePassword(c *gin.Context) {
+	claims, err := e.auth.ExtractJWTUser(c)
 	utils.PanicIfError(err)
 
 	changePasswordRequest := request.HTTPChangePasswordRequest{}
-	err = ctx.ShouldBindJSON(&changePasswordRequest)
+	err = c.ShouldBindJSON(&changePasswordRequest)
 	utils.PanicIfError(err)
 
 	e.uc.User.ChangePassword(context.Background(), changePasswordRequest, claims.Id)
-	common.JsonBasicResponse(ctx, http.StatusOK, "OK")
+	common.JsonBasicResponse(c, http.StatusOK, "OK")
 }
 
-func (e *rest) ResetPassword(ctx *gin.Context) {
+func (e *rest) ResetPassword(c *gin.Context) {
 	resetTokenRequest := request.HTTPResetTokenRequest{}
-	err := ctx.ShouldBindJSON(&resetTokenRequest)
+	err := c.ShouldBindJSON(&resetTokenRequest)
 	utils.PanicIfError(err)
 
-	e.uc.User.SendResetToken(ctx, resetTokenRequest)
-	common.JsonBasicResponse(ctx, http.StatusOK, "OK")
+	e.uc.User.SendResetToken(c, resetTokenRequest)
+	common.JsonBasicResponse(c, http.StatusOK, "OK")
 }
 
-func (e *rest) ReedemResetToken(ctx *gin.Context) {
+func (e *rest) ReedemResetToken(c *gin.Context) {
 	reedemTokenRequest := request.HTTPRedeemTokenRequest{}
-	err := ctx.ShouldBindJSON(&reedemTokenRequest)
+	err := c.ShouldBindJSON(&reedemTokenRequest)
 	utils.PanicIfError(err)
 
-	e.uc.User.RedeemToken(ctx, reedemTokenRequest)
-	common.JsonBasicResponse(ctx, http.StatusOK, "OK")
+	e.uc.User.RedeemToken(c, reedemTokenRequest)
+	common.JsonBasicResponse(c, http.StatusOK, "OK")
+}
+
+func (e *rest) FindAllUser(c *gin.Context) {
+	var page, perPage int
+	var err error
+
+	queryPage, ok := c.GetQuery("page")
+	querySearch, _ := c.GetQuery("search")
+
+	if !ok {
+		page = 1
+	} else {
+		page, err = strconv.Atoi(queryPage)
+		utils.PanicIfError(err)
+	}
+
+	queryPerPage, ok := c.GetQuery("per_page")
+
+	if !ok {
+		perPage = 10
+	} else {
+		perPage, err = strconv.Atoi(queryPerPage)
+		utils.PanicIfError(err)
+	}
+
+	userResponses, meta := e.uc.User.FindAll(c, page, perPage, querySearch)
+	common.JsonPageData(c, http.StatusOK, "OK", userResponses, meta)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/alitdarmaputra/fims-be/src/common"
 	"github.com/alitdarmaputra/fims-be/src/handler/rest/request"
 	"github.com/alitdarmaputra/fims-be/src/handler/rest/response"
 )
@@ -17,10 +18,16 @@ type UserUsecase interface {
 	SendResetToken(c context.Context, request request.HTTPResetTokenRequest)
 	RedeemToken(c context.Context, request request.HTTPRedeemTokenRequest)
 	ChangePassword(
-		ctx context.Context,
+		c context.Context,
 		request request.HTTPChangePasswordRequest,
 		userId uint,
 	)
+	FindAll(
+		c context.Context,
+		page int,
+		perPage int,
+		querySearch string,
+	) ([]response.HTTPUserDetailResponse, common.Meta)
 }
 
 type Token struct {

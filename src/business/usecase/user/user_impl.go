@@ -13,6 +13,7 @@ import (
 	"github.com/alitdarmaputra/fims-be/src/business/entity"
 	"github.com/alitdarmaputra/fims-be/src/business/model"
 	"github.com/alitdarmaputra/fims-be/src/business/usecase/smtp"
+	"github.com/alitdarmaputra/fims-be/src/common"
 	"github.com/alitdarmaputra/fims-be/src/config"
 	"github.com/alitdarmaputra/fims-be/src/handler/rest/request"
 	"github.com/alitdarmaputra/fims-be/src/handler/rest/response"
@@ -61,7 +62,7 @@ func (usecase *UserUsecaseImpl) SetJWTConfig(secret string, expired time.Duratio
 }
 
 func (usecase *UserUsecaseImpl) Create(
-	ctx context.Context,
+	c context.Context,
 	request request.HTTPUserCreateRequest,
 ) {
 	var user model.User
@@ -71,7 +72,7 @@ func (usecase *UserUsecaseImpl) Create(
 
 	// Check if user has register but not verified
 
-	user, err := usecase.UserDom.FindOne(ctx, tx, request.Email)
+	user, err := usecase.UserDom.FindOne(c, tx, request.Email)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		panic(err)
 	}
@@ -88,7 +89,7 @@ func (usecase *UserUsecaseImpl) Create(
 	user.Name = request.Name
 	user.ProfileImg = "https://sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png"
 
-	user, err = usecase.UserDom.Save(ctx, tx, user)
+	user, err = usecase.UserDom.Save(c, tx, user)
 	utils.PanicIfError(err)
 
 	token, err := usecase.GenerateToken(user)
@@ -105,26 +106,26 @@ func (usecase *UserUsecaseImpl) Create(
 }
 
 func (usecase *UserUsecaseImpl) FindById(
-	ctx context.Context,
+	c context.Context,
 	userId uint,
 ) response.HTTPUserDetailResponse {
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
 
-	user, err := usecase.UserDom.FindById(ctx, tx, userId)
+	user, err := usecase.UserDom.FindById(c, tx, userId)
 	utils.PanicIfError(err)
 
 	return response.ToUserResponse(user)
 }
 
 func (usecase *UserUsecaseImpl) Login(
-	ctx context.Context,
+	c context.Context,
 	request request.HTTPUserLoginRequest,
 ) *Token {
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
 
-	user, err := usecase.UserDom.FindOne(ctx, tx, request.Email)
+	user, err := usecase.UserDom.FindOne(c, tx, request.Email)
 	if !user.VerifiedAt.Valid {
 		panic(entity.NewUnauthorizedError("Incorrect email and password entered"))
 	}
@@ -153,19 +154,18 @@ func (usecase *UserUsecaseImpl) GenerateToken(user model.User) (string, error) {
 			"exp": time.Now().Add(usecase.jwtExpired).Unix(),
 		},
 	)
-
 	return eJWT.SignedString([]byte(usecase.jwtSecretKey))
 }
 
 func (usecase *UserUsecaseImpl) ChangePassword(
-	ctx context.Context,
+	c context.Context,
 	request request.HTTPChangePasswordRequest,
 	userId uint,
 ) {
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
 
-	user, err := usecase.UserDom.FindById(ctx, tx, userId)
+	user, err := usecase.UserDom.FindById(c, tx, userId)
 	utils.PanicIfError(err)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.MinCost)
@@ -173,12 +173,12 @@ func (usecase *UserUsecaseImpl) ChangePassword(
 
 	user.Password = string(hash)
 
-	_, err = usecase.UserDom.Update(ctx, tx, user)
+	_, err = usecase.UserDom.Update(c, tx, user)
 	utils.PanicIfError(err)
 }
 
 func (usecase *UserUsecaseImpl) VerifyEmail(
-	ctx context.Context,
+	c context.Context,
 	verificationCode string,
 ) {
 	// Decode token
@@ -208,24 +208,24 @@ func (usecase *UserUsecaseImpl) VerifyEmail(
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
 
-	user, err := usecase.UserDom.FindUnverifiedById(ctx, tx, res.Id)
+	user, err := usecase.UserDom.FindUnverifiedById(c, tx, res.Id)
 	utils.PanicIfError(err)
 
 	user.VerifiedAt = sql.NullTime{Time: time.Now(), Valid: true}
 
-	_, err = usecase.UserDom.Update(ctx, tx, user)
+	_, err = usecase.UserDom.Update(c, tx, user)
 	utils.PanicIfError(err)
 }
 
 func (usecase *UserUsecaseImpl) SendResetToken(
-	ctx context.Context,
+	c context.Context,
 	request request.HTTPResetTokenRequest,
 ) {
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
 
 	// check if user exist
-	user, err := usecase.UserDom.FindOne(ctx, tx, request.Email)
+	user, err := usecase.UserDom.FindOne(c, tx, request.Email)
 	utils.PanicIfError(err)
 
 	// generate reset token
@@ -238,7 +238,7 @@ func (usecase *UserUsecaseImpl) SendResetToken(
 		TokenExpiry: time.Now().Add(time.Minute * time.Duration(usecase.cfg.ResetTokenExpiredTime)),
 	}
 
-	usecase.TokenDom.Save(ctx, tx, resetToken)
+	usecase.TokenDom.Save(c, tx, resetToken)
 
 	// send email with password reset link
 	data := entity.EmailData{
@@ -252,30 +252,51 @@ func (usecase *UserUsecaseImpl) SendResetToken(
 }
 
 func (usecase *UserUsecaseImpl) RedeemToken(
-	ctx context.Context,
+	c context.Context,
 	request request.HTTPRedeemTokenRequest,
 ) {
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
 
-	token, err := usecase.TokenDom.FindByToken(ctx, tx, request.Token)
+	token, err := usecase.TokenDom.FindByToken(c, tx, request.Token)
 	utils.PanicIfError(err)
 
 	if time.Now().After(token.TokenExpiry) {
 		panic(entity.NewUnauthorizedError("Invalid token"))
 	}
 
-	user, err := usecase.UserDom.FindById(ctx, tx, token.UserId)
+	user, err := usecase.UserDom.FindById(c, tx, token.UserId)
 	utils.PanicIfError(err)
 
-	usecase.TokenDom.DeleteAllByUserId(ctx, tx, user.ID)
+	usecase.TokenDom.DeleteAllByUserId(c, tx, user.ID)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.MinCost)
 	utils.PanicIfError(err)
 
 	user.Password = string(hash)
 
-	if _, err = usecase.UserDom.Update(ctx, tx, user); err != nil {
+	if _, err = usecase.UserDom.Update(c, tx, user); err != nil {
 		panic(err)
 	}
+}
+
+func (usecase *UserUsecaseImpl) FindAll(
+	c context.Context,
+	page, perPage int,
+	querySearch string,
+) ([]response.HTTPUserDetailResponse, common.Meta) {
+	offset := utils.CountOffset(page, perPage)
+
+	tx := usecase.DB.Begin()
+	defer utils.CommitOrRollBack(tx)
+
+	users, count := usecase.UserDom.FindAll(c, tx, offset, perPage, querySearch)
+
+	meta := common.Meta{
+		Page:      page,
+		PerPage:   perPage,
+		Total:     count,
+		TotalPage: utils.CountTotalPage(count, perPage),
+	}
+	return response.ToUserResponses(users), meta
 }

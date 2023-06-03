@@ -16,22 +16,23 @@ type REST interface {
 }
 
 type rest struct {
-	cfg        *config.Api
-	uc         *usecase.Usecase
-	middleware middleware.Authetication
-	r          *gin.Engine
+	cfg  *config.Api
+	uc   *usecase.Usecase
+	auth middleware.Authetication
+	r    *gin.Engine
 }
 
-func Init(cfg *config.Api, uc *usecase.Usecase) REST {
+func Init(cfg *config.Api, uc *usecase.Usecase, auth middleware.Authetication) REST {
 	r := gin.New()
 	r.Use(gin.CustomRecovery(middleware.ErrorHandler))
 	r.Use(middleware.CORSMiddleware())
 	r.Use(gin.Logger())
 
 	return &rest{
-		cfg: cfg,
-		uc:  uc,
-		r:   r,
+		cfg:  cfg,
+		uc:   uc,
+		auth: auth,
+		r:    r,
 	}
 }
 
@@ -48,6 +49,7 @@ func (e *rest) Serve() *http.Server {
 
 	v1JWTAuth := v1.Use(middleware.JWTMiddlewareAuth(e.cfg.JWTSecretKey))
 
+	v1JWTAuth.GET("/users", e.FindAllUser)
 	v1JWTAuth.GET("/user/me", e.GetProfile)
 
 	server := http.Server{
