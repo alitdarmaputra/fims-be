@@ -10,3 +10,6 @@ migrate:
 
 migrate-generate:
 	./src/docs/sql/migrate create -ext sql -dir "./src/docs/sql/migration" -seq ${MIGRATE_NAME}
+
+seed:
+	go run ./src/docs/sql/seeder/main seed ${SEED_NAME}

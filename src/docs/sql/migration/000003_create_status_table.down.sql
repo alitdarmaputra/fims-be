@@ -1,1 +1,1 @@
-DROP TABLE status IF EXISTS;
+DROP TABLE IF EXISTS status;
