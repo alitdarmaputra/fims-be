@@ -38,8 +38,9 @@ type SMTP struct {
 }
 
 type Figma struct {
-	FigmaToken   string `json:"figma_token"    mapstructure:"FIGMA_TOKEN"`
-	FigmaBaseUrl string `json:"figma_base_url" mapstructure:"FIGMA_BASE_URL"`
+	FigmaToken      string `json:"figma_token"        mapstructure:"FIGMA_TOKEN"`
+	FigmaBaseUrl    string `json:"figma_base_url"     mapstructure:"FIGMA_BASE_URL"`
+	FigmaApiBaseUrl string `json:"figma_api_base_url" mapstructure:"FIGMA_API_BASE_URL"`
 }
 
 func LoadConfigAPI(path string) *Api {

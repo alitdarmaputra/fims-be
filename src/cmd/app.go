@@ -29,7 +29,7 @@ func InitializeServer() *http.Server {
 		log.Fatalln(err.Error())
 	}
 
-	dom := domain.Init()
+	dom := domain.Init(cfg)
 	uc := usecase.Init(dom, db, cfg)
 
 	if cfg.JWTSecretKey != "" && cfg.JWTExpiredTime != 0 {

@@ -31,3 +31,15 @@ func (domain *StatusDomImpl) FindAll(c context.Context, tx *gorm.DB) []model.Sta
 	tx.Find(&statuses)
 	return statuses
 }
+
+func (domain *StatusDomImpl) FindById(
+	c context.Context,
+	tx *gorm.DB,
+	statusId uint,
+) (model.Status, error) {
+	status := model.Status{}
+	if err := tx.First(&status, statusId).Error; err != nil {
+		return status, err
+	}
+	return status, nil
+}

@@ -21,7 +21,7 @@ func Init(
 ) *Usecase {
 	smtpUsecase := smtp.InitSMTPUsecase(cfg.SMTP)
 	userUsecase := user.InitUserUsecase(dom.User, smtpUsecase, dom.Token, db, cfg)
-	nodeUsecase := node.InitNodeUsecase(db, cfg, dom.Node, dom.Status, dom.User)
+	nodeUsecase := node.InitNodeUsecase(db, cfg, dom.Node, dom.Status, dom.User, dom.Figma)
 
 	return &Usecase{
 		User: userUsecase,

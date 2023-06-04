@@ -2,7 +2,9 @@ package node
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/alitdarmaputra/fims-be/src/business/domain/figma"
 	"github.com/alitdarmaputra/fims-be/src/business/domain/node"
 	"github.com/alitdarmaputra/fims-be/src/business/domain/status"
 	"github.com/alitdarmaputra/fims-be/src/business/domain/user"
@@ -21,6 +23,7 @@ type NodeUsecaseImpl struct {
 	NodeDom   node.NodeDom
 	StatusDom status.StatusDom
 	UserDom   user.UserDom
+	FigmaDom  figma.FigmaDom
 }
 
 func InitNodeUsecase(
@@ -29,6 +32,7 @@ func InitNodeUsecase(
 	nodeDom node.NodeDom,
 	statusDom status.StatusDom,
 	userDom user.UserDom,
+	figmaDom figma.FigmaDom,
 ) NodeUsecase {
 	return &NodeUsecaseImpl{
 		DB:        db,
@@ -36,6 +40,7 @@ func InitNodeUsecase(
 		NodeDom:   nodeDom,
 		StatusDom: statusDom,
 		UserDom:   userDom,
+		FigmaDom:  figmaDom,
 	}
 }
 
@@ -48,6 +53,11 @@ func (usecase *NodeUsecaseImpl) Create(
 
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
+
+	// Check if node exist
+	res, err := usecase.FigmaDom.GetFileNodes(request.FigmaKey, request.NodeId)
+	utils.PanicIfError(err)
+	fmt.Println(res)
 
 	status, err := usecase.StatusDom.FindByName(c, tx, model.StatusInProgress)
 
@@ -102,6 +112,15 @@ func (usecase *NodeUsecaseImpl) ChangeStatus(c context.Context, nodeId uint, sta
 
 	node, err := usecase.NodeDom.FindById(c, tx, nodeId)
 	utils.PanicIfError(err)
+
+	status, err := usecase.StatusDom.FindById(c, tx, statusId)
+	utils.PanicIfError(err)
+
+	if status.Name == model.StatusReadyForDevelopment {
+		// get image
+		_, err := usecase.FigmaDom.GetImage(node.FigmaKey, node.NodeId)
+		utils.PanicIfError(err)
+	}
 
 	node.StatusId = statusId
 

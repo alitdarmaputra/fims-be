@@ -41,13 +41,19 @@ func ErrorHandler(ctx *gin.Context, err any) {
 }
 
 func notFoundError(ctx *gin.Context, err any) bool {
-	execption, ok := err.(error)
-	if ok && errors.Is(execption, gorm.ErrRecordNotFound) {
-		common.JsonErrorResponse(ctx, http.StatusNotFound, "Not found", execption.Error())
+	exception, ok := err.(error)
+	if ok && errors.Is(exception, gorm.ErrRecordNotFound) {
+		common.JsonErrorResponse(ctx, http.StatusNotFound, "Not found", exception.Error())
 		return true
-	} else {
-		return false
 	}
+
+	exception, ok = err.(*entity.NotFoundError)
+	if ok {
+		common.JsonErrorResponse(ctx, http.StatusNotFound, "Not found", exception.Error())
+		return true
+	}
+
+	return false
 }
 
 func validationError(ctx *gin.Context, err any) bool {
