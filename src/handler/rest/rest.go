@@ -52,6 +52,14 @@ func (e *rest) Serve() *http.Server {
 	v1JWTAuth.GET("/users", e.FindAllUser)
 	v1JWTAuth.GET("/user/me", e.GetProfile)
 
+	// Node
+	v1JWTAuth.POST("/node", e.CreateNode)
+	v1JWTAuth.PUT("/node/:id", e.UpdateNode)
+	v1JWTAuth.PATCH("/node/:id", e.UpdateNodeStatus)
+	v1JWTAuth.DELETE("/node/:id", e.DeleteNode)
+	v1JWTAuth.GET("/node/:id", e.FindNodeById)
+	v1JWTAuth.GET("/nodes", e.FindAllNode)
+
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", e.cfg.Port),
 		Handler: e.r,

@@ -16,6 +16,7 @@ type Api struct {
 	ResetTokenExpiredTime int      `json:"reset_token_expiredbali_time" mapstructure:"RESET_TOKEN_EXPIRED"`
 	Database              Database `json:"database"`
 	SMTP                  SMTP     `json:"smtp"`
+	Figma                 Figma    `json:"figma"`
 }
 
 type Database struct {
@@ -34,6 +35,11 @@ type SMTP struct {
 	Port         int    `json:"smtp_port"     mapstructure:"SMTP_PORT"`
 	Username     string `json:"smtp_username" mapstructure:"SMTP_USERNAME"`
 	Password     string `json:"smtp_password" mapstructure:"SMTP_PASSWORD"`
+}
+
+type Figma struct {
+	FigmaToken   string `json:"figma_token"    mapstructure:"FIGMA_TOKEN"`
+	FigmaBaseUrl string `json:"figma_base_url" mapstructure:"FIGMA_BASE_URL"`
 }
 
 func LoadConfigAPI(path string) *Api {
@@ -59,6 +65,7 @@ func LoadConfigAPI(path string) *Api {
 	viper.Unmarshal(api)
 	viper.Unmarshal(&api.Database)
 	viper.Unmarshal(&api.SMTP)
+	viper.Unmarshal(&api.Figma)
 
 	return api
 }

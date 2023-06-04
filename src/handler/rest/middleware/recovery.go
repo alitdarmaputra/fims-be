@@ -43,7 +43,7 @@ func ErrorHandler(ctx *gin.Context, err any) {
 func notFoundError(ctx *gin.Context, err any) bool {
 	execption, ok := err.(error)
 	if ok && errors.Is(execption, gorm.ErrRecordNotFound) {
-		common.JsonBasicData(ctx, http.StatusNotFound, "Not found", execption.Error())
+		common.JsonErrorResponse(ctx, http.StatusNotFound, "Not found", execption.Error())
 		return true
 	} else {
 		return false

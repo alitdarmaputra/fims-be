@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"github.com/alitdarmaputra/fims-be/src/business/domain"
+	"github.com/alitdarmaputra/fims-be/src/business/usecase/node"
 	"github.com/alitdarmaputra/fims-be/src/business/usecase/smtp"
 	"github.com/alitdarmaputra/fims-be/src/business/usecase/user"
 	"github.com/alitdarmaputra/fims-be/src/config"
@@ -10,6 +11,7 @@ import (
 
 type Usecase struct {
 	User user.UserUsecase
+	Node node.NodeUsecase
 }
 
 func Init(
@@ -19,8 +21,10 @@ func Init(
 ) *Usecase {
 	smtpUsecase := smtp.InitSMTPUsecase(cfg.SMTP)
 	userUsecase := user.InitUserUsecase(dom.User, smtpUsecase, dom.Token, db, cfg)
+	nodeUsecase := node.InitNodeUsecase(db, cfg, dom.Node, dom.Status, dom.User)
 
 	return &Usecase{
 		User: userUsecase,
+		Node: nodeUsecase,
 	}
 }

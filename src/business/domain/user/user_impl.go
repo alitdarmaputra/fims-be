@@ -80,7 +80,7 @@ func (domain *UserDomImpl) FindUnverifiedById(
 	userId uint,
 ) (model.User, error) {
 	var user model.User
-	if err := tx.Where("verified_at IS NULL").First(&user).Error; err != nil {
+	if err := tx.Where("verified_at IS NULL AND id = ?", userId).First(&user).Error; err != nil {
 		return user, err
 	}
 	return user, nil
@@ -98,7 +98,7 @@ func (domain *UserDomImpl) FindAll(
 		search = "%" + search + "%"
 		result = tx.Limit(limit).
 			Offset(offset).
-			Where("name LIKE ? AND role_id = ?", search, 2).
+			Where("name LIKE ?", search).
 			Find(&users)
 	}
 
