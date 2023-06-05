@@ -60,6 +60,12 @@ func (e *rest) Serve() *http.Server {
 	v1JWTAuth.GET("/node/:id", e.FindNodeById)
 	v1JWTAuth.GET("/nodes", e.FindAllNode)
 
+	// Node History
+	v1JWTAuth.GET("/node/:id/history", e.FindAllHistoryByNodeId)
+
+	// History
+	v1JWTAuth.GET("/histories", e.FindAllHistory)
+
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", e.cfg.Port),
 		Handler: e.r,

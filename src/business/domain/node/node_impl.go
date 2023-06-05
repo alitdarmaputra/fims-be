@@ -30,7 +30,7 @@ func (domain *NodeDomImpl) Update(
 	tx *gorm.DB,
 	node model.Node,
 ) (model.Node, error) {
-	if err := tx.Updates(&node).Error; err != nil {
+	if err := tx.Model(&model.Node{}).Where("id = ?", node.ID).Update("status_id", node.StatusId).Error; err != nil {
 		return node, err
 	}
 
@@ -43,7 +43,7 @@ func (domain *NodeDomImpl) FindById(
 	node_id uint,
 ) (model.Node, error) {
 	var node model.Node
-	if err := tx.First(&node, node_id).Error; err != nil {
+	if err := tx.Preload("User").Preload("Status").First(&node, node_id).Error; err != nil {
 		return node, err
 	}
 
@@ -57,14 +57,12 @@ func (domain *NodeDomImpl) FindAll(
 	search string,
 	status string,
 ) ([]model.Node, int) {
-	search = "%" + search + "%"
+	query := tx
 
-	var nodes []model.Node = []model.Node{}
-	result := tx.Find(&nodes)
-
-	query := tx.Preload("Status").Preload("User").Limit(limit).Offset(offset)
+	nodes := []model.Node{}
 
 	if search != "" {
+		search = "%" + search + "%"
 		query = query.Where("title LIKE ?", search)
 	}
 
@@ -72,11 +70,11 @@ func (domain *NodeDomImpl) FindAll(
 		query = query.Where("status.name = ?", status)
 	}
 
-	if search != "" || status != "" {
-		result = query.Find(&nodes)
-	}
+	total := query.Find(&model.Node{}).RowsAffected
 
-	return nodes, int(result.RowsAffected)
+	query.Preload("Status").Preload("User").Limit(limit).Offset(offset).Find(&nodes)
+
+	return nodes, int(total)
 }
 
 func (domain *NodeDomImpl) Delete(

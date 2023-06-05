@@ -27,11 +27,14 @@ func (e *rest) UpdateNode(c *gin.Context) {
 	err := c.ShouldBindJSON(&nodeUpdateRequest)
 	utils.PanicIfError(err)
 
+	claims, err := e.auth.ExtractJWTUser(c)
+	utils.PanicIfError(err)
+
 	param := common.PathParam{}
 	err = c.ShouldBindUri(&param)
 	utils.PanicIfError(err)
 
-	e.uc.Node.Update(c, nodeUpdateRequest, param.Id)
+	e.uc.Node.Update(c, nodeUpdateRequest, param.Id, claims.Id)
 	common.JsonBasicResponse(c, http.StatusOK, "OK")
 }
 
@@ -40,11 +43,14 @@ func (e *rest) UpdateNodeStatus(c *gin.Context) {
 	err := c.ShouldBindJSON(&nodeUpdateStatusRequest)
 	utils.PanicIfError(err)
 
+	claims, err := e.auth.ExtractJWTUser(c)
+	utils.PanicIfError(err)
+
 	param := common.PathParam{}
 	err = c.ShouldBindUri(&param)
 	utils.PanicIfError(err)
 
-	e.uc.Node.ChangeStatus(c, param.Id, nodeUpdateStatusRequest.StatusId)
+	e.uc.Node.ChangeStatus(c, param.Id, nodeUpdateStatusRequest.StatusId, claims.Id)
 	common.JsonBasicResponse(c, http.StatusOK, "OK")
 }
 

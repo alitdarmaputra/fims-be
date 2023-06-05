@@ -2,12 +2,15 @@ package node
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/alitdarmaputra/fims-be/src/business/domain/figma"
+	"github.com/alitdarmaputra/fims-be/src/business/domain/history"
 	"github.com/alitdarmaputra/fims-be/src/business/domain/node"
 	"github.com/alitdarmaputra/fims-be/src/business/domain/status"
 	"github.com/alitdarmaputra/fims-be/src/business/domain/user"
+	"github.com/alitdarmaputra/fims-be/src/business/entity"
 	"github.com/alitdarmaputra/fims-be/src/business/model"
 	"github.com/alitdarmaputra/fims-be/src/common"
 	"github.com/alitdarmaputra/fims-be/src/config"
@@ -18,12 +21,13 @@ import (
 )
 
 type NodeUsecaseImpl struct {
-	DB        *gorm.DB
-	cfg       *config.Api
-	NodeDom   node.NodeDom
-	StatusDom status.StatusDom
-	UserDom   user.UserDom
-	FigmaDom  figma.FigmaDom
+	DB         *gorm.DB
+	cfg        *config.Api
+	NodeDom    node.NodeDom
+	StatusDom  status.StatusDom
+	UserDom    user.UserDom
+	FigmaDom   figma.FigmaDom
+	HistoryDom history.HistoryDom
 }
 
 func InitNodeUsecase(
@@ -33,14 +37,16 @@ func InitNodeUsecase(
 	statusDom status.StatusDom,
 	userDom user.UserDom,
 	figmaDom figma.FigmaDom,
+	historyDom history.HistoryDom,
 ) NodeUsecase {
 	return &NodeUsecaseImpl{
-		DB:        db,
-		cfg:       cfg,
-		NodeDom:   nodeDom,
-		StatusDom: statusDom,
-		UserDom:   userDom,
-		FigmaDom:  figmaDom,
+		DB:         db,
+		cfg:        cfg,
+		NodeDom:    nodeDom,
+		StatusDom:  statusDom,
+		UserDom:    userDom,
+		FigmaDom:   figmaDom,
+		HistoryDom: historyDom,
 	}
 }
 
@@ -55,9 +61,11 @@ func (usecase *NodeUsecaseImpl) Create(
 	defer utils.CommitOrRollBack(tx)
 
 	// Check if node exist
-	res, err := usecase.FigmaDom.GetFileNodes(request.FigmaKey, request.NodeId)
+	_, err := usecase.FigmaDom.GetFileNodes(request.FigmaKey, request.NodeId)
 	utils.PanicIfError(err)
-	fmt.Println(res)
+
+	user, err := usecase.UserDom.FindById(c, tx, userId)
+	utils.PanicIfError(err)
 
 	status, err := usecase.StatusDom.FindByName(c, tx, model.StatusInProgress)
 
@@ -68,7 +76,26 @@ func (usecase *NodeUsecaseImpl) Create(
 	node.UserId = userId
 	node.StatusId = status.ID
 
-	_, err = usecase.NodeDom.Create(c, tx, node)
+	node, err = usecase.NodeDom.Create(c, tx, node)
+	utils.PanicIfError(err)
+
+	history := model.History{
+		HistoryType: model.HistoryTypeCreate,
+		NodeId:      node.ID,
+		UpdatedBy:   userId,
+		FigmaUrl: sql.NullString{
+			String: fmt.Sprintf(
+				"%s/file/%s?node-id=%s",
+				usecase.cfg.Figma.FigmaApiBaseUrl,
+				node.FigmaKey,
+				node.NodeId,
+			),
+			Valid: true,
+		},
+		Description: model.GenerateCreateDescription(user.Name, node.Title),
+	}
+
+	_, err = usecase.HistoryDom.Create(c, tx, history)
 	utils.PanicIfError(err)
 }
 
@@ -76,25 +103,42 @@ func (usecase *NodeUsecaseImpl) Update(
 	c context.Context,
 	request request.HTTPNodeCreateUpdateRequest,
 	nodeId uint,
+	userId uint,
 ) {
-	var node model.Node
-
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
 
-	node, err := usecase.NodeDom.FindById(c, tx, nodeId)
+	user, err := usecase.UserDom.FindById(c, tx, userId)
 	utils.PanicIfError(err)
 
-	status, err := usecase.StatusDom.FindByName(c, tx, model.StatusInProgress)
+	node, err := usecase.NodeDom.FindById(c, tx, nodeId)
 	utils.PanicIfError(err)
 
 	node.Title = request.Title
 	node.FigmaKey = request.FigmaKey
 	node.NodeId = request.NodeId
 	node.Description = request.Description
-	node.StatusId = status.ID
 
 	_, err = usecase.NodeDom.Update(c, tx, node)
+	utils.PanicIfError(err)
+
+	history := model.History{
+		HistoryType: model.HistoryTypeUpdate,
+		NodeId:      node.ID,
+		UpdatedBy:   userId,
+		FigmaUrl: sql.NullString{
+			String: fmt.Sprintf(
+				"%s/file/%s?node-id=%s",
+				usecase.cfg.Figma.FigmaApiBaseUrl,
+				node.FigmaKey,
+				node.NodeId,
+			),
+			Valid: true,
+		},
+		Description: model.GenerateUpdateDescription(user.Name),
+	}
+
+	_, err = usecase.HistoryDom.Create(c, tx, history)
 	utils.PanicIfError(err)
 }
 
@@ -106,7 +150,12 @@ func (usecase *NodeUsecaseImpl) Delete(c context.Context, nodeId uint) {
 	utils.PanicIfError(err)
 }
 
-func (usecase *NodeUsecaseImpl) ChangeStatus(c context.Context, nodeId uint, statusId uint) {
+func (usecase *NodeUsecaseImpl) ChangeStatus(
+	c context.Context,
+	nodeId uint,
+	statusId uint,
+	userId uint,
+) {
 	tx := usecase.DB.Begin()
 	defer utils.CommitOrRollBack(tx)
 
@@ -116,15 +165,75 @@ func (usecase *NodeUsecaseImpl) ChangeStatus(c context.Context, nodeId uint, sta
 	status, err := usecase.StatusDom.FindById(c, tx, statusId)
 	utils.PanicIfError(err)
 
+	user, err := usecase.UserDom.FindById(c, tx, userId)
+	utils.PanicIfError(err)
+
+	history := model.History{
+		HistoryType: model.HistoryTypeStatusChange,
+		NodeId:      node.ID,
+		UpdatedBy:   userId,
+		FigmaUrl: sql.NullString{
+			String: fmt.Sprintf(
+				"%s/file/%s?node-id=%s",
+				usecase.cfg.Figma.FigmaApiBaseUrl,
+				node.FigmaKey,
+				node.NodeId,
+			),
+			Valid: true,
+		},
+		Description:  model.GenerateStatusChangeDescription(user.Name),
+		StatusFromId: sql.NullInt64{Int64: int64(node.Status.ID), Valid: true},
+		StatusToId:   sql.NullInt64{Int64: int64(status.ID), Valid: true},
+	}
+
 	if status.Name == model.StatusReadyForDevelopment {
-		// get image
-		_, err := usecase.FigmaDom.GetImage(node.FigmaKey, node.NodeId)
+		// get node detail
+		figmaNode, err := usecase.FigmaDom.GetFileNodes(node.FigmaKey, node.NodeId)
 		utils.PanicIfError(err)
+
+		history.FigmaUrl = sql.NullString{
+			String: fmt.Sprintf(
+				"%s/file/%s?node-id=%s&version-id=%s",
+				usecase.cfg.Figma.FigmaApiBaseUrl,
+				node.FigmaKey,
+				node.NodeId,
+				figmaNode.Version,
+			),
+			Valid: true,
+		}
+
+		history.FigmaVersion = sql.NullString{String: figmaNode.Version, Valid: true}
+
+		// get image
+		snapshotPath, err := usecase.FigmaDom.GetImage(node.FigmaKey, node.NodeId)
+		utils.PanicIfError(err)
+
+		history.SnapshotPath = sql.NullString{String: snapshotPath, Valid: true}
+	}
+
+	if status.Name == model.StatusInDevelopment || status.Name == model.StatusDone {
+		histories, err := usecase.HistoryDom.FindByNodeId(c, tx, nodeId)
+		utils.PanicIfError(err)
+
+		if len(histories) < 0 {
+			panic(entity.NewNotFoundError("Last history not found"))
+		}
+
+		for _, history := range histories {
+			if history.StatusTo.Name == model.StatusReadyForDevelopment {
+				// Get latest history url
+				history.FigmaUrl = histories[0].FigmaUrl
+				break
+			}
+		}
 	}
 
 	node.StatusId = statusId
 
 	_, err = usecase.NodeDom.Update(c, tx, node)
+	utils.PanicIfError(err)
+
+	_, err = usecase.HistoryDom.Create(c, tx, history)
 	utils.PanicIfError(err)
 }
 
