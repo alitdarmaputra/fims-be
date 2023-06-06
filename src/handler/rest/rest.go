@@ -40,6 +40,8 @@ func (e *rest) Serve() *http.Server {
 	api := e.r.Group("/api")
 	v1 := api.Group("/v1")
 
+	v1.StaticFS("/public", http.Dir("public"))
+
 	// Auth
 	v1.POST("/auth/login", e.Login)
 	v1.POST("/auth/register", e.Register)
@@ -65,6 +67,9 @@ func (e *rest) Serve() *http.Server {
 
 	// History
 	v1JWTAuth.GET("/histories", e.FindAllHistory)
+
+	// Status
+	v1JWTAuth.GET("/status", e.FindAllStatus)
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", e.cfg.Port),

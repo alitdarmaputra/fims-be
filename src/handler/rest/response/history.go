@@ -7,13 +7,14 @@ import (
 )
 
 type HTTPHistoryResponse struct {
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedBy   string    `json:"created_by"`
-	Description string    `json:"description"`
-	HistoryType string    `json:"history_type"`
-	FigmaUrl    string    `json:"figma_url"`
-	StatusFrom  string    `json:"status_from"`
-	StatusTo    string    `json:"status_to"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedBy    string    `json:"created_by"`
+	Description  string    `json:"description"`
+	HistoryType  string    `json:"history_type"`
+	FigmaUrl     string    `json:"figma_url"`
+	SnapshotPath string    `json:"snapshot_path"`
+	StatusFrom   string    `json:"status_from"`
+	StatusTo     string    `json:"status_to"`
 }
 
 func ToHistoryResponse(node model.History) HTTPHistoryResponse {
@@ -34,6 +35,10 @@ func ToHistoryResponse(node model.History) HTTPHistoryResponse {
 
 	if node.StatusToId.Valid {
 		response.StatusTo = node.StatusTo.Name
+	}
+
+	if node.SnapshotPath.Valid {
+		response.SnapshotPath = node.SnapshotPath.String
 	}
 
 	return response
