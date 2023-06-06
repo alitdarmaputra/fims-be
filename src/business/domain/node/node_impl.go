@@ -70,7 +70,8 @@ func (domain *NodeDomImpl) FindAll(
 		query = query.Where("status.name = ?", status)
 	}
 
-	total := query.Find(&model.Node{}).RowsAffected
+	var total int64
+	query.Find(&model.Node{}).Count(&total)
 
 	query.Preload("Status").Preload("User").Limit(limit).Offset(offset).Find(&nodes)
 
