@@ -21,6 +21,7 @@ type History struct {
 	User         User           `gorm:"foreignKey:UpdatedBy"`
 	StatusFrom   Status         `gorm:"foreignKey:StatusFromId"`
 	StatusTo     Status         `gorm:"foreignKey:StatusToId"`
+	Node         Node
 }
 
 const (

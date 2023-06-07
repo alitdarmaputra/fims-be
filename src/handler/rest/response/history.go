@@ -15,6 +15,7 @@ type HTTPHistoryResponse struct {
 	SnapshotPath string    `json:"snapshot_path"`
 	StatusFrom   string    `json:"status_from"`
 	StatusTo     string    `json:"status_to"`
+	NodeTitle    string    `json:"node_title"`
 }
 
 func ToHistoryResponse(node model.History) HTTPHistoryResponse {
@@ -24,6 +25,7 @@ func ToHistoryResponse(node model.History) HTTPHistoryResponse {
 	response.UpdatedBy = node.User.Name
 	response.Description = node.Description
 	response.HistoryType = node.HistoryType
+	response.NodeTitle = node.Node.Title
 
 	if node.FigmaUrl.Valid {
 		response.FigmaUrl = node.FigmaUrl.String
