@@ -8,7 +8,7 @@ import (
 
 type HTTPHistoryResponse struct {
 	CreatedAt    time.Time `json:"created_at"`
-	UpdatedBy    string    `json:"created_by"`
+	UpdatedBy    string    `json:"updated_by"`
 	Description  string    `json:"description"`
 	HistoryType  string    `json:"history_type"`
 	FigmaUrl     string    `json:"figma_url"`
@@ -26,6 +26,7 @@ func ToHistoryResponse(node model.History) HTTPHistoryResponse {
 	response.Description = node.Description
 	response.HistoryType = node.HistoryType
 	response.NodeTitle = node.Node.Title
+	response.UpdatedBy = node.User.Name
 
 	if node.FigmaUrl.Valid {
 		response.FigmaUrl = node.FigmaUrl.String
