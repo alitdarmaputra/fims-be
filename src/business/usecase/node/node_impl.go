@@ -175,7 +175,7 @@ func (usecase *NodeUsecaseImpl) ChangeStatus(
 		FigmaUrl: sql.NullString{
 			String: fmt.Sprintf(
 				"%s/file/%s?node-id=%s",
-				usecase.cfg.Figma.FigmaApiBaseUrl,
+				usecase.cfg.Figma.FigmaBaseUrl,
 				node.FigmaKey,
 				node.NodeId,
 			),
