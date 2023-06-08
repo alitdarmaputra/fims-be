@@ -7,6 +7,7 @@ import (
 )
 
 type HTTPHistoryResponse struct {
+	NodeId       uint      `json:"id"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedBy    string    `json:"updated_by"`
 	Description  string    `json:"description"`
@@ -18,30 +19,31 @@ type HTTPHistoryResponse struct {
 	NodeTitle    string    `json:"node_title"`
 }
 
-func ToHistoryResponse(node model.History) HTTPHistoryResponse {
+func ToHistoryResponse(history model.History) HTTPHistoryResponse {
 	response := HTTPHistoryResponse{}
 
-	response.CreatedAt = node.CreatedAt
-	response.UpdatedBy = node.User.Name
-	response.Description = node.Description
-	response.HistoryType = node.HistoryType
-	response.NodeTitle = node.Node.Title
-	response.UpdatedBy = node.User.Name
+	response.CreatedAt = history.CreatedAt
+	response.UpdatedBy = history.User.Name
+	response.Description = history.Description
+	response.HistoryType = history.HistoryType
+	response.NodeTitle = history.Node.Title
+	response.UpdatedBy = history.User.Name
+	response.NodeId = history.NodeId
 
-	if node.FigmaUrl.Valid {
-		response.FigmaUrl = node.FigmaUrl.String
+	if history.FigmaUrl.Valid {
+		response.FigmaUrl = history.FigmaUrl.String
 	}
 
-	if node.StatusFromId.Valid {
-		response.StatusFrom = node.StatusFrom.Name
+	if history.StatusFromId.Valid {
+		response.StatusFrom = history.StatusFrom.Name
 	}
 
-	if node.StatusToId.Valid {
-		response.StatusTo = node.StatusTo.Name
+	if history.StatusToId.Valid {
+		response.StatusTo = history.StatusTo.Name
 	}
 
-	if node.SnapshotPath.Valid {
-		response.SnapshotPath = node.SnapshotPath.String
+	if history.SnapshotPath.Valid {
+		response.SnapshotPath = history.SnapshotPath.String
 	}
 
 	return response
