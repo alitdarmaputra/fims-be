@@ -73,7 +73,12 @@ func (domain *NodeDomImpl) FindAll(
 	var total int64
 	query.Find(&model.Node{}).Count(&total)
 
-	query.Preload("Status").Preload("User").Limit(limit).Offset(offset).Find(&nodes)
+	query.Preload("Status").
+		Preload("User").
+		Limit(limit).
+		Offset(offset).
+		Order("updated_at DESC").
+		Find(&nodes)
 
 	return nodes, int(total)
 }

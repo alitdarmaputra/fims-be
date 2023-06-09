@@ -1,6 +1,6 @@
 package request
 
-type HTTPNodeCreateUpdateRequest struct {
+type HTTPNodeCreateRequest struct {
 	Title       string `json:"title"       binding:"required"`
 	FigmaKey    string `json:"figma_key"   binding:"required"`
 	NodeId      string `json:"node_id"     binding:"required"`
@@ -9,4 +9,9 @@ type HTTPNodeCreateUpdateRequest struct {
 
 type HTTPNodeUpdateStatusRequest struct {
 	StatusId uint `json:"status_id"`
+}
+
+type HTTPNodeUpdateRequest struct {
+	Title       string `json:"title"       binding:"required"`
+	Description string `json:"description"`
 }

@@ -86,7 +86,7 @@ func (usecase *NodeUsecaseImpl) Create(
 		FigmaUrl: sql.NullString{
 			String: fmt.Sprintf(
 				"%s/file/%s?node-id=%s",
-				usecase.cfg.Figma.FigmaApiBaseUrl,
+				usecase.cfg.Figma.FigmaBaseUrl,
 				node.FigmaKey,
 				node.NodeId,
 			),
@@ -115,8 +115,6 @@ func (usecase *NodeUsecaseImpl) Update(
 	utils.PanicIfError(err)
 
 	node.Title = request.Title
-	node.FigmaKey = request.FigmaKey
-	node.NodeId = request.NodeId
 	node.Description = request.Description
 
 	_, err = usecase.NodeDom.Update(c, tx, node)
@@ -129,7 +127,7 @@ func (usecase *NodeUsecaseImpl) Update(
 		FigmaUrl: sql.NullString{
 			String: fmt.Sprintf(
 				"%s/file/%s?node-id=%s",
-				usecase.cfg.Figma.FigmaApiBaseUrl,
+				usecase.cfg.Figma.FigmaBaseUrl,
 				node.FigmaKey,
 				node.NodeId,
 			),
@@ -161,6 +159,10 @@ func (usecase *NodeUsecaseImpl) ChangeStatus(
 
 	node, err := usecase.NodeDom.FindById(c, tx, nodeId)
 	utils.PanicIfError(err)
+
+	if node.StatusId == statusId {
+		return
+	}
 
 	status, err := usecase.StatusDom.FindById(c, tx, statusId)
 	utils.PanicIfError(err)

@@ -8,7 +8,7 @@ CREATE TABLE histories (
     figma_url VARCHAR(200),
     figma_version VARCHAR(50),
     snapshot_path VARCHAR(200),
-    description VARCHAR(50),
+    description VARCHAR(200),
     CONSTRAINT FK_histories_users FOREIGN KEY (updated_by)
     REFERENCES users(id),
     CONSTRAINT FK_histories_nodes FOREIGN KEY (node_id)
