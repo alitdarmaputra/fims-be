@@ -232,7 +232,7 @@ func (usecase *NodeUsecaseImpl) ChangeStatus(
 
 	node.StatusId = statusId
 
-	_, err = usecase.NodeDom.Update(c, tx, node)
+	_, err = usecase.NodeDom.UpdateStatus(c, tx, node)
 	utils.PanicIfError(err)
 
 	_, err = usecase.HistoryDom.Create(c, tx, history)

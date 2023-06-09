@@ -30,10 +30,21 @@ func (domain *NodeDomImpl) Update(
 	tx *gorm.DB,
 	node model.Node,
 ) (model.Node, error) {
-	if err := tx.Model(&model.Node{}).Where("id = ?", node.ID).Update("status_id", node.StatusId).Error; err != nil {
+	if err := tx.Save(&node).Error; err != nil {
 		return node, err
 	}
 
+	return node, nil
+}
+
+func (domain *NodeDomImpl) UpdateStatus(
+	c context.Context,
+	tx *gorm.DB,
+	node model.Node,
+) (model.Node, error) {
+	if err := tx.Model(&model.Node{}).Where("id = ?", node.ID).Update("status_id", node.StatusId).Error; err != nil {
+		return node, err
+	}
 	return node, nil
 }
 
