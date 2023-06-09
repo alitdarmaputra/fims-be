@@ -52,7 +52,7 @@ func InitNodeUsecase(
 
 func (usecase *NodeUsecaseImpl) Create(
 	c context.Context,
-	request request.HTTPNodeCreateUpdateRequest,
+	request request.HTTPNodeCreateRequest,
 	userId uint,
 ) {
 	var node model.Node
@@ -101,7 +101,7 @@ func (usecase *NodeUsecaseImpl) Create(
 
 func (usecase *NodeUsecaseImpl) Update(
 	c context.Context,
-	request request.HTTPNodeCreateUpdateRequest,
+	request request.HTTPNodeUpdateRequest,
 	nodeId uint,
 	userId uint,
 ) {

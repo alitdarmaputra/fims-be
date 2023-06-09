@@ -11,7 +11,7 @@ import (
 )
 
 func (e *rest) CreateNode(c *gin.Context) {
-	nodeCreateRequest := request.HTTPNodeCreateUpdateRequest{}
+	nodeCreateRequest := request.HTTPNodeCreateRequest{}
 	err := c.ShouldBindJSON(&nodeCreateRequest)
 	utils.PanicIfError(err)
 
@@ -23,7 +23,7 @@ func (e *rest) CreateNode(c *gin.Context) {
 }
 
 func (e *rest) UpdateNode(c *gin.Context) {
-	nodeUpdateRequest := request.HTTPNodeCreateUpdateRequest{}
+	nodeUpdateRequest := request.HTTPNodeUpdateRequest{}
 	err := c.ShouldBindJSON(&nodeUpdateRequest)
 	utils.PanicIfError(err)
 
