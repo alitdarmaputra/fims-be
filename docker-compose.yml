@@ -1,0 +1,15 @@
+version: '3.9'
+services:
+  api:
+    image: alitdarmaputra/fimsbe_image:latest
+    container_name: fimsbe_container
+    ports:
+      - '4003:4003'
+  backoffice:
+    image: alitdarmaputra/fimsfe_image:latest
+    container_name: fimsfe_container
+    ports:
+      - '3000:3000'
+    depends_on: 
+      - api
+
