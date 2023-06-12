@@ -54,7 +54,7 @@ func (domain *NodeDomImpl) FindById(
 	node_id uint,
 ) (model.Node, error) {
 	var node model.Node
-	if err := tx.Preload("User").Preload("Status").First(&node, node_id).Error; err != nil {
+	if err := tx.Preload("User").Preload("Assignee").Preload("Status").First(&node, node_id).Error; err != nil {
 		return node, err
 	}
 
