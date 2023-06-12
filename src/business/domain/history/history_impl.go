@@ -66,6 +66,7 @@ func (domain *HistoryDomImpl) FindAll(
 		Limit(limit).
 		Offset(offset).
 		Order("created_at DESC").
+		Where("(histories.node_id, histories.created_at) IN (SELECT histories.node_id, MAX(histories.created_at) FROM histories GROUP BY node_id)").
 		Find(&histories)
 
 	return histories, int(total)

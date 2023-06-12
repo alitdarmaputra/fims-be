@@ -104,3 +104,14 @@ func (domain *NodeDomImpl) Delete(
 	}
 	return nil
 }
+
+func (domain *NodeDomImpl) UpdateAssignee(
+	c context.Context,
+	tx *gorm.DB,
+	node model.Node,
+) (model.Node, error) {
+	if err := tx.Model(&model.Node{}).Where("id = ?", node.ID).Update("assignee_id", node.AssigneeId).Error; err != nil {
+		return node, err
+	}
+	return node, nil
+}

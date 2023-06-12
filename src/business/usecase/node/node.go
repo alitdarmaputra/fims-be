@@ -21,4 +21,5 @@ type NodeUsecase interface {
 		querySearch string,
 		status string,
 	) ([]response.HTTPNodeResponse, common.Meta)
+	ChangeAssignee(c context.Context, nodeId, assigneeId, userId uint)
 }

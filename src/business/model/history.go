@@ -25,9 +25,10 @@ type History struct {
 }
 
 const (
-	HistoryTypeCreate       = "CREATE"
-	HistoryTypeUpdate       = "UPDATE"
-	HistoryTypeStatusChange = "STATUS CHANGE"
+	HistoryTypeCreate         = "CREATE"
+	HistoryTypeUpdate         = "UPDATE"
+	HistoryTypeStatusChange   = "STATUS CHANGE"
+	HistoryTypeAssigneeChange = "ASSIGNEE CHANGE"
 )
 
 func GenerateCreateDescription(userName, title string) string {
@@ -40,4 +41,8 @@ func GenerateUpdateDescription(userName string) string {
 
 func GenerateStatusChangeDescription(userName string) string {
 	return fmt.Sprintf("%s changed the Status", userName)
+}
+
+func GenerateAssigneeChangeDescription(userName, assigneeName string) string {
+	return fmt.Sprintf("%s changed the Assignee to %s", userName, assigneeName)
 }

@@ -274,3 +274,36 @@ func (usecase *NodeUsecaseImpl) FindAll(
 
 	return response.ToNodeResponses(nodes, usecase.cfg.Figma.FigmaBaseUrl), meta
 }
+
+func (usecase *NodeUsecaseImpl) ChangeAssignee(c context.Context, nodeId, assigneeId, userId uint) {
+	tx := usecase.DB.Begin()
+	defer utils.CommitOrRollBack(tx)
+
+	node, err := usecase.NodeDom.FindById(c, tx, nodeId)
+	utils.PanicIfError(err)
+
+	if node.AssigneeId == assigneeId {
+		return
+	}
+
+	user, err := usecase.UserDom.FindById(c, tx, userId)
+	utils.PanicIfError(err)
+
+	assignee, err := usecase.UserDom.FindById(c, tx, assigneeId)
+	utils.PanicIfError(err)
+
+	history := model.History{
+		HistoryType: model.HistoryTypeAssigneeChange,
+		NodeId:      node.ID,
+		UpdatedBy:   userId,
+		Description: model.GenerateAssigneeChangeDescription(user.Name, assignee.Name),
+	}
+
+	node.AssigneeId = assigneeId
+
+	_, err = usecase.NodeDom.UpdateAssignee(c, tx, node)
+	utils.PanicIfError(err)
+
+	_, err = usecase.HistoryDom.Create(c, tx, history)
+	utils.PanicIfError(err)
+}

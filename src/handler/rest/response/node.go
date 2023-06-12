@@ -24,6 +24,7 @@ type HTTPNodeDetailResponse struct {
 	CreatedBy   string    `json:"created_by"`
 	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
+	AssigneeId  uint      `json:"assignee_id"`
 }
 
 func ToNodeResponse(node model.Node, figmaBaseUrl string) HTTPNodeResponse {
@@ -46,6 +47,7 @@ func ToNodeDetailResponse(node model.Node, figmaBaseUrl string) HTTPNodeDetailRe
 		CreatedBy:   node.User.Name,
 		Status:      node.Status.Name,
 		CreatedAt:   node.CreatedAt,
+		AssigneeId:  node.AssigneeId,
 	}
 }
 

@@ -11,6 +11,7 @@ type NodeDom interface {
 	Create(c context.Context, tx *gorm.DB, node model.Node) (model.Node, error)
 	Update(c context.Context, tx *gorm.DB, node model.Node) (model.Node, error)
 	UpdateStatus(c context.Context, tx *gorm.DB, node model.Node) (model.Node, error)
+	UpdateAssignee(c context.Context, tx *gorm.DB, node model.Node) (model.Node, error)
 	FindById(c context.Context, tx *gorm.DB, nodeId uint) (model.Node, error)
 	FindAll(
 		c context.Context,

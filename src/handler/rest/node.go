@@ -99,3 +99,19 @@ func (e *rest) FindAllNode(c *gin.Context) {
 	nodeResponses, meta := e.uc.Node.FindAll(c, page, perPage, querySearch, queryStatus)
 	common.JsonPageData(c, http.StatusOK, "OK", nodeResponses, meta)
 }
+
+func (e *rest) UpdateAssignee(c *gin.Context) {
+	nodeUpdateAssigneeRequest := request.HTTPNodeUpdateAssigneeRequest{}
+	err := c.ShouldBindJSON(&nodeUpdateAssigneeRequest)
+	utils.PanicIfError(err)
+
+	claims, err := e.auth.ExtractJWTUser(c)
+	utils.PanicIfError(err)
+
+	param := common.PathParam{}
+	err = c.ShouldBindUri(&param)
+	utils.PanicIfError(err)
+
+	e.uc.Node.ChangeAssignee(c, param.Id, nodeUpdateAssigneeRequest.AssigneeId, claims.Id)
+	common.JsonBasicResponse(c, http.StatusOK, "OK")
+}

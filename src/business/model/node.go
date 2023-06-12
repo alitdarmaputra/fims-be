@@ -11,6 +11,7 @@ type Node struct {
 	NodeId      string `gorm:"column:node_id"`
 	Description string `gorm:"column:description"`
 	UserId      uint   `gorm:"column:user_id"`
+	AssigneeId  uint   `gorm:"column:assignee_id"`
 	User        User   `gorm:"foreignKey:UserId"`
 	StatusId    uint   `gorm:"column:status_id"`
 	Status      Status `gorm:"foreignKey:StatusId"`

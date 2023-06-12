@@ -61,6 +61,7 @@ func (e *rest) Serve() *http.Server {
 	v1JWTAuth.DELETE("/node/:id", e.DeleteNode)
 	v1JWTAuth.GET("/node/:id", e.FindNodeById)
 	v1JWTAuth.GET("/nodes", e.FindAllNode)
+	v1JWTAuth.PATCH("/node/:id/assignee", e.UpdateAssignee)
 
 	// Node History
 	v1JWTAuth.GET("/node/:id/history", e.FindAllHistoryByNodeId)
