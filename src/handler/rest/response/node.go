@@ -17,14 +17,14 @@ type HTTPNodeResponse struct {
 }
 
 type HTTPNodeDetailResponse struct {
-	ID          uint      `json:"id"`
-	Title       string    `json:"title"`
-	FigmaUrl    string    `json:"figma_url"`
-	Description string    `json:"description"`
-	CreatedBy   string    `json:"created_by"`
-	Status      string    `json:"status"`
-	CreatedAt   time.Time `json:"created_at"`
-	AssigneeId  uint      `json:"assignee_id"`
+	ID           uint      `json:"id"`
+	Title        string    `json:"title"`
+	FigmaUrl     string    `json:"figma_url"`
+	Description  string    `json:"description"`
+	CreatedBy    string    `json:"created_by"`
+	Status       string    `json:"status"`
+	CreatedAt    time.Time `json:"created_at"`
+	AssigneeName string    `json:"assignee_name"`
 }
 
 func ToNodeResponse(node model.Node, figmaBaseUrl string) HTTPNodeResponse {
@@ -40,14 +40,19 @@ func ToNodeResponse(node model.Node, figmaBaseUrl string) HTTPNodeResponse {
 
 func ToNodeDetailResponse(node model.Node, figmaBaseUrl string) HTTPNodeDetailResponse {
 	return HTTPNodeDetailResponse{
-		ID:          node.ID,
-		Title:       node.Title,
-		FigmaUrl:    fmt.Sprintf("%s/file/%s?node-id=%s", figmaBaseUrl, node.FigmaKey, node.NodeId),
-		Description: node.Description,
-		CreatedBy:   node.User.Name,
-		Status:      node.Status.Name,
-		CreatedAt:   node.CreatedAt,
-		AssigneeId:  node.AssigneeId,
+		ID:    node.ID,
+		Title: node.Title,
+		FigmaUrl: fmt.Sprintf(
+			"%s/file/%s?node-id=%s",
+			figmaBaseUrl,
+			node.FigmaKey,
+			node.NodeId,
+		),
+		Description:  node.Description,
+		CreatedBy:    node.User.Name,
+		Status:       node.Status.Name,
+		CreatedAt:    node.CreatedAt,
+		AssigneeName: node.Assignee.Name,
 	}
 }
 

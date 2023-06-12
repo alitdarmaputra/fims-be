@@ -282,7 +282,7 @@ func (usecase *NodeUsecaseImpl) ChangeAssignee(c context.Context, nodeId, assign
 	node, err := usecase.NodeDom.FindById(c, tx, nodeId)
 	utils.PanicIfError(err)
 
-	if node.AssigneeId == assigneeId {
+	if uint(node.AssigneeId.Int64) == assigneeId {
 		return
 	}
 
@@ -299,7 +299,7 @@ func (usecase *NodeUsecaseImpl) ChangeAssignee(c context.Context, nodeId, assign
 		Description: model.GenerateAssigneeChangeDescription(user.Name, assignee.Name),
 	}
 
-	node.AssigneeId = assigneeId
+	node.AssigneeId = sql.NullInt64{Int64: int64(assigneeId), Valid: true}
 
 	_, err = usecase.NodeDom.UpdateAssignee(c, tx, node)
 	utils.PanicIfError(err)
