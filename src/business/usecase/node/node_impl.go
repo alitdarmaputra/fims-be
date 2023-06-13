@@ -12,6 +12,7 @@ import (
 	"github.com/alitdarmaputra/fims-be/src/business/domain/user"
 	"github.com/alitdarmaputra/fims-be/src/business/entity"
 	"github.com/alitdarmaputra/fims-be/src/business/model"
+	"github.com/alitdarmaputra/fims-be/src/business/usecase/smtp"
 	"github.com/alitdarmaputra/fims-be/src/common"
 	"github.com/alitdarmaputra/fims-be/src/config"
 	"github.com/alitdarmaputra/fims-be/src/handler/rest/request"
@@ -21,13 +22,14 @@ import (
 )
 
 type NodeUsecaseImpl struct {
-	DB         *gorm.DB
-	cfg        *config.Api
-	NodeDom    node.NodeDom
-	StatusDom  status.StatusDom
-	UserDom    user.UserDom
-	FigmaDom   figma.FigmaDom
-	HistoryDom history.HistoryDom
+	DB          *gorm.DB
+	cfg         *config.Api
+	NodeDom     node.NodeDom
+	StatusDom   status.StatusDom
+	UserDom     user.UserDom
+	FigmaDom    figma.FigmaDom
+	HistoryDom  history.HistoryDom
+	SmtpUsecase smtp.SmtpUsecase
 }
 
 func InitNodeUsecase(
@@ -38,15 +40,17 @@ func InitNodeUsecase(
 	userDom user.UserDom,
 	figmaDom figma.FigmaDom,
 	historyDom history.HistoryDom,
+	smtpUseCase smtp.SmtpUsecase,
 ) NodeUsecase {
 	return &NodeUsecaseImpl{
-		DB:         db,
-		cfg:        cfg,
-		NodeDom:    nodeDom,
-		StatusDom:  statusDom,
-		UserDom:    userDom,
-		FigmaDom:   figmaDom,
-		HistoryDom: historyDom,
+		DB:          db,
+		cfg:         cfg,
+		NodeDom:     nodeDom,
+		StatusDom:   statusDom,
+		UserDom:     userDom,
+		FigmaDom:    figmaDom,
+		HistoryDom:  historyDom,
+		SmtpUsecase: smtpUseCase,
 	}
 }
 
@@ -228,6 +232,23 @@ func (usecase *NodeUsecaseImpl) ChangeStatus(
 				break
 			}
 		}
+	}
+
+	// if node is sending back to in progress then notify
+	if (node.Status.Name == model.StatusInDevelopment || node.Status.Name == model.StatusDone) &&
+		(status.Name == model.StatusInProgress) && (node.AssigneeId.Valid) {
+
+		emailData := entity.EmailData{
+			Email:   node.Assignee.Email,
+			Name:    user.Name,
+			URL:     usecase.cfg.SMTP.ClientOrigin + "/node/" + fmt.Sprintf("%d", nodeId),
+			Subject: fmt.Sprintf("[FIMS] %s", node.Title),
+		}
+
+		if err := usecase.SmtpUsecase.SendUpdate(&user, &emailData); err != nil {
+			panic(err)
+		}
+
 	}
 
 	node.StatusId = statusId

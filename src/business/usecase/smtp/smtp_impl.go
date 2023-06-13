@@ -91,3 +91,37 @@ func (usecase *SMTPUsecaseImpl) SendResetToken(user *model.User, data *entity.Em
 	}
 	return nil
 }
+
+func (usecase *SMTPUsecaseImpl) SendUpdate(user *model.User, data *entity.EmailData) error {
+	from := usecase.cfg.EmailFrom
+	smtpPass := usecase.cfg.Password
+	smtpUser := usecase.cfg.Username
+	to := data.Email
+	smtpHost := usecase.cfg.Host
+	smtpPort := usecase.cfg.Port
+
+	var body bytes.Buffer
+	template, err := utils.ParseTemplateDir(path.Join("src", "docs", "template"))
+	if err != nil {
+		return err
+	}
+
+	template.ExecuteTemplate(&body, "update", data)
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", from)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", data.Subject)
+	m.SetBody("text/html", body.String())
+	m.AddAlternative("text/plain", html2text.HTML2Text(body.String()))
+
+	d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPass)
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	err = d.DialAndSend(m)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}

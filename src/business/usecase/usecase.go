@@ -33,6 +33,7 @@ func Init(
 		dom.User,
 		dom.Figma,
 		dom.History,
+		smtpUsecase,
 	)
 	historyUsecase := history.InitHistoryUsecase(dom.History, db)
 	statusUsecase := status.InitStatusUsecase(db, cfg, dom.Status)

@@ -1,4 +1,4 @@
-{{define "reset_code"}}
+{{define "update"}}
 <!DOCTYPE html>
 <html>
   <head>
@@ -27,8 +27,7 @@
                     <tr>
                       <td>
                         <br>
-                        <p>Hello <b>{{ .Name }},</b></p>
-                        <p>Click the link below to reset your account password</p>
+                        <p>{{ .Name}} <b>make 1 update.</b></p>
                         <table
                           role="presentation"
                           border="0"
@@ -48,7 +47,7 @@
                                   <tbody>
                                     <tr>
                                       <td>
-                                        <a href="{{ .URL }}" target="_blank">Reset Password</a>
+                                        <a href="{{ .URL }}" target="_blank">View Node</a>
                                       </td>
                                     </tr>
                                   </tbody>
@@ -62,7 +61,6 @@
                         <p style="color: #808080;">{{ .URL }}</p>
 
                         <p>Regards, Fims.</p>
-                        <p style="color: #FF0000;">!!! Ignore this message if you feel that you did not send a password reset request.</p>
                       </td>
                     </tr>
                   </table>
